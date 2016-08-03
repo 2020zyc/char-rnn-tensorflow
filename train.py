@@ -12,30 +12,43 @@ from model import Model
 
 def main():
     parser = argparse.ArgumentParser()
+    #数据目录
     parser.add_argument('--data_dir', type=str, default='data/tinyshakespeare',
                        help='data directory containing input.txt')
+    #保存模型
     parser.add_argument('--save_dir', type=str, default='save',
                        help='directory to store checkpointed models')
+    #hidden大小
     parser.add_argument('--rnn_size', type=int, default=128,
                        help='size of RNN hidden state')
+    #层数
     parser.add_argument('--num_layers', type=int, default=2,
                        help='number of layers in the RNN')
+    #模型类型
     parser.add_argument('--model', type=str, default='lstm',
                        help='rnn, gru, or lstm')
+    #minibatch大小
     parser.add_argument('--batch_size', type=int, default=50,
                        help='minibatch size')
+    #RNN序列长度
     parser.add_argument('--seq_length', type=int, default=50,
                        help='RNN sequence length')
+    #迭代次数
     parser.add_argument('--num_epochs', type=int, default=50,
                        help='number of epochs')
+    #保存频率，checkpoint
     parser.add_argument('--save_every', type=int, default=1000,
                        help='save frequency')
+    #梯度修剪
     parser.add_argument('--grad_clip', type=float, default=5.,
                        help='clip gradients at this value')
+    #学习率
     parser.add_argument('--learning_rate', type=float, default=0.002,
                        help='learning rate')
+    #衰减率
     parser.add_argument('--decay_rate', type=float, default=0.97,
-                       help='decay rate for rmsprop')                       
+                       help='decay rate for rmsprop')      
+    #初始化模型                 
     parser.add_argument('--init_from', type=str, default=None,
                        help="""continue training from saved model at this path. Path must contain files saved by previous training process: 
                             'config.pkl'        : configuration;
@@ -44,14 +57,18 @@ def main():
                                                   Note: this file contains absolute paths, be careful when moving files around;
                             'model.ckpt-*'      : file(s) with model definition (created by tf)
                         """)
+    #下面一行从命令行解析实值参数，填充到args参数结构中
     args = parser.parse_args()
     train(args)
 
 def train(args):
+    #args中已经有命令行的赋值
     data_loader = TextLoader(args.data_dir, args.batch_size, args.seq_length)
+    #数据加载器会分析词汇量
     args.vocab_size = data_loader.vocab_size
     
     # check compatibility if training is continued from previously saved model
+    # 检查新旧版本（模型）的兼容性
     if args.init_from is not None:
         # check if all necessary files exist 
         assert os.path.isdir(args.init_from)," %s must be a a path" % args.init_from
